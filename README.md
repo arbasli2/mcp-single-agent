@@ -41,9 +41,9 @@ Resources:
 5. **Interact with agent**
    
    Once running, you can ask the agent to analyze YouTube videos. Try prompts like:
-   - "Write a blog post for this video: [YouTube URL]"
-   - "Create social media posts for: [YouTube URL]"
-   - "Generate video chapters for: [YouTube URL]"
+   - "Summarize this: https://youtu.be/N3vHJcHBS-w?si=aw8PV0acYHJGPy7R"
+   - "Generate chapter timestamps with links"
+   - "Write me a LinkedIn post about the video"
 
 ### Base Python/pip
 
