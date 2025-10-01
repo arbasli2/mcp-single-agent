@@ -1,6 +1,6 @@
 from agents import Agent, Runner
 from agents.mcp import MCPServerStdio, MCPServer
-from agents import Agent, Runner, ModelSettings
+from agents import Agent, Runner, gen_trace_id, trace
 from openai.types.responses import ResponseTextDeltaEvent
 import asyncio
 
@@ -16,14 +16,14 @@ async def main():
             "args": ["run", "mcp-server/yt-mcp.py"],
         },
     ) as server:
-        await run(server)
+        trace_id = gen_trace_id()
+        with trace(workflow_name="YT MCP Agent Example", trace_id=trace_id):
+            print(f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}\n")
+            await run(server)
         
 async def run(mcp_server: MCPServer):
     # system prompt from MCP server
-    prompt_result = await mcp_server.get_prompt(
-        "system_prompt",
-        {},
-    )
+    prompt_result = await mcp_server.get_prompt("system_prompt")
     instructions = prompt_result.messages[0].content.text
     
     # create agent
@@ -74,9 +74,11 @@ async def run(mcp_server: MCPServer):
                         status_msg = f"\n-- Calling {tool_name}..."
                     print(status_msg)
                 elif event.item.type == "tool_call_output_item":
+                    input_items.append({"content": f"{event.item.output}", "role": "user"})
                     print("-- Tool call completed.")
                 elif event.item.type == "message_output_item":
-                    input_items.append({"content": f"{event.item.raw_item.content[0].text}", "role": "user"})
+                    input_items.append({"content": f"{event.item.raw_item.content[0].text}", "role": "assistant"})
+                    pass
                 else:
                     pass  # Ignore other event types
 

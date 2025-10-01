@@ -1,8 +1,0 @@
-jupyterlab
-ipykernel
-ipywidgets
-openai-agents
-openai
-python-dotenv
-youtube-transcript-api
-mcp[cli]

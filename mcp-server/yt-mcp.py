@@ -21,7 +21,7 @@ def system_prompt() -> str:
 
 # Create tool
 @mcp.tool()
-def fetch_youtube_transcript(url: str) -> str:
+def fetch_video_transcript(url: str) -> str:
     """
     Extract transcript with timestamps from a YouTube video URL and format it for LLM consumption
     
