@@ -32,7 +32,6 @@ async def run(mcp_server: MCPServer):
         instructions=instructions,
         mcp_servers=[mcp_server],
     )
-    # ModelSettings.tool_choice = "required" # force tool use
     
     input_items = []
 
