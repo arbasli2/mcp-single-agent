@@ -5,6 +5,8 @@ Resources:
 - Talk recording (coming soon)
 - [Slides](https://drive.google.com/file/d/1id7V9nrNetW72k6vERS6oTy0bW0wEloo/view?usp=sharing)
 
+This example is a prelude to [Cohort 7](https://github.com/ShawhinT/AI-Builders-Bootcamp-7/tree/main) of the AI Builders Bootcamp.
+
 ## Requirements
 
 - Python 3.13+
