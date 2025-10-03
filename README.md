@@ -3,7 +3,7 @@ A YouTube video agent built using a custom MCP server and OpenAI's Agent's SDK. 
 
 Resources:
 - Talk recording (coming soon)
-- Slides (coming soon)
+- [Slides](https://drive.google.com/file/d/1id7V9nrNetW72k6vERS6oTy0bW0wEloo/view?usp=sharing)
 
 ## Requirements
 
