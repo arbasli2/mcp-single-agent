@@ -2,7 +2,7 @@
 A YouTube video agent built using a custom MCP server and OpenAI's Agent's SDK. It can extract video transcripts given link fetch specialized instructions for things like: writing blog posts, video chapters, and social posts.
 
 Resources:
-- Talk recording (coming soon)
+- [Talk recording](https://youtu.be/w-Ml3NivoFo)
 - [Slides](https://drive.google.com/file/d/1id7V9nrNetW72k6vERS6oTy0bW0wEloo/view?usp=sharing)
 
 >This example is a prelude to [Cohort 7](https://github.com/ShawhinT/AI-Builders-Bootcamp-7/tree/main) of the [AI Builders Bootcamp](https://maven.com/shaw-talebi/ai-builders-bootcamp).
