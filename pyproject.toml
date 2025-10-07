@@ -10,7 +10,7 @@ dependencies = [
     "jupyterlab>=4.4.9",
     "mcp[cli]>=1.15.0",
     "openai>=1.109.1",
-    "openai-agents>=0.3.3",
+    # "openai-agents>=0.3.3",  # Removed - not compatible with local LLMs
     "python-dotenv>=1.1.1",
     "youtube-transcript-api>=1.2.2",
 ]

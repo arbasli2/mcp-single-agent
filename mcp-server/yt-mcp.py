@@ -23,10 +23,15 @@ def system_prompt() -> str:
 @mcp.tool()
 def fetch_video_transcript(url: str) -> str:
     """
-    Extract transcript with timestamps from a YouTube video URL and format it for LLM consumption
+    Extract transcript with timestamps from a YouTube video URL and format it for analysis.
+    
+    Use this tool when:
+    - User provides a YouTube URL and wants video content analysis
+    - User asks to summarize, analyze, or process a YouTube video
+    - User wants to create content based on a YouTube video
     
     Args:
-        url (str): YouTube video URL
+        url (str): YouTube video URL (youtube.com or youtu.be format)
         
     Returns:
         str: Formatted transcript with timestamps, where each entry is on a new line
@@ -65,17 +70,22 @@ def fetch_video_transcript(url: str) -> str:
 @mcp.tool()
 def fetch_intstructions(prompt_name: str) -> str:
     """
-    Fetch instructions for a given prompt name from the prompts/ directory
+    Fetch specialized writing instructions and guidelines for creating different types of content.
+
+    Use this tool when user wants to:
+    - Write a blog post (use prompt_name: "write_blog_post")
+    - Create social media content (use prompt_name: "write_social_post") 
+    - Generate video chapter timestamps (use prompt_name: "write_video_chapters")
 
     Args:
-        prompt_name (str): Name of the prompt to fetch instructions for
-        Available prompts: 
-            - write_blog_post
-            - write_social_post
-            - write_video_chapters
+        prompt_name (str): Type of instructions to fetch
+        Available options: 
+            - "write_blog_post": Guidelines for writing blog posts
+            - "write_social_post": Guidelines for social media content
+            - "write_video_chapters": Guidelines for creating video chapter timestamps
 
     Returns:
-        str: Instructions for the given prompt
+        str: Detailed instructions and guidelines for the requested content type
     """
     script_dir = os.path.dirname(__file__)
     prompt_path = os.path.join(script_dir, "prompts", f"{prompt_name}.md")

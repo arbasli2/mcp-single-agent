@@ -6,7 +6,23 @@ import asyncio
 
 # import OPENAI_API_KEY from .env file
 from dotenv import load_dotenv
+import os
+import ssl
 load_dotenv()
+
+# Configure LLM endpoint (local LLM by default, OpenAI as fallback)
+if os.getenv("USE_OPENAI", "false").lower() == "true":
+    # Use OpenAI's API
+    if not os.getenv("OPENAI_API_KEY"):
+        raise ValueError("OPENAI_API_KEY is required when USE_OPENAI=true")
+else:
+    # Use local LLM by default (LM Studio)
+    os.environ["OPENAI_BASE_URL"] = os.getenv("LOCAL_LLM_BASE_URL", "http://localhost:1234/v1")
+    os.environ["OPENAI_API_KEY"] = os.getenv("LOCAL_LLM_API_KEY", "lm-studio")  # LM Studio accepts any key
+    
+    # Disable SSL verification for local connections
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 async def main():
     async with MCPServerStdio(
@@ -16,9 +32,16 @@ async def main():
             "args": ["run", "mcp-server/yt-mcp.py"],
         },
     ) as server:
-        trace_id = gen_trace_id()
-        with trace(workflow_name="YT MCP Agent Example", trace_id=trace_id):
-            print(f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}\n")
+        # Only use OpenAI tracing when using OpenAI's API
+        use_openai = os.getenv("USE_OPENAI", "false").lower() == "true"
+        
+        if use_openai:
+            trace_id = gen_trace_id()
+            with trace(workflow_name="YT MCP Agent Example", trace_id=trace_id):
+                print(f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}\n")
+                await run(server)
+        else:
+            print("Using local LLM - OpenAI tracing disabled\n")
             await run(server)
         
 async def run(mcp_server: MCPServer):
