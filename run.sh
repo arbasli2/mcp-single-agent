@@ -19,14 +19,14 @@ case $choice in
         echo "🔧 Starting Local LLM Version..."
         echo "Make sure your local LLM server is running!"
         echo ""
-        uv run main_local.py
+        uv run local_agent.py
         ;;
     2)
         echo ""
         echo "🌐 Starting OpenAI Version..."
         echo "Make sure you have OPENAI_API_KEY set!"
         echo ""
-        uv run main.py
+        uv run openai_agent.py
         ;;
     3)
         echo "Goodbye!"

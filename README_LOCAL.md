@@ -2,7 +2,7 @@
 A YouTube video agent built using a custom MCP server that works with both OpenAI's API and local LLMs. It can extract video transcripts and fetch specialized instructions for writing blog posts, video chapters, and social posts.
 
 ## 🆕 Local LLM Support
-This project now includes **`main_local.py`** - a simplified version that works with local LLMs without requiring OpenAI's proprietary Agents SDK.
+This project now includes **`local_agent.py`** - a simplified version that works with local LLMs without requiring OpenAI's proprietary Agents SDK.
 
 **Key differences:**
 - ✅ **Works with local LLMs** (LM Studio, Ollama, etc.)
@@ -62,7 +62,7 @@ EOF
 
 4. **Run the local agent**
    ```bash
-   uv run main_local.py
+   uv run local_agent.py
    ```
 
 5. **Interact with agent**
@@ -86,7 +86,7 @@ EOF
 
 3. **Run the original agent**
    ```bash
-   uv run main.py
+   uv run openai_agent.py
    ```
 
 ## Local LLMs Setup (for WSL users)
@@ -121,7 +121,7 @@ If you're running this in WSL and your LLM server is on Windows:
 
 ## Choosing Between Versions
 
-| Feature | Local Version (`main_local.py`) | OpenAI Version (`main.py`) |
+| Feature | Local Version (`local_agent.py`) | OpenAI Version (`openai_agent.py`) |
 |---------|--------------------------------|----------------------------|
 | Local LLM Support | ✅ Full support | ❌ No (requires OpenAI Responses API) |
 | OpenAI Support | ✅ Optional | ✅ Required |
@@ -129,7 +129,7 @@ If you're running this in WSL and your LLM server is on Windows:
 | Content Generation | ✅ Yes | ✅ Yes |
 | MCP Tools | ✅ Yes | ✅ Yes |
 | Advanced Tracing | ❌ No | ✅ Yes (OpenAI platform) |
-| Agent Handoffs | ❌ No | ✅ Yes |
+| Agent Handoffs | ❌ No | ❌ No |
 | Setup Complexity | ✅ Simple | ⚠️ More complex |
 
 ## Base Python/pip Installation

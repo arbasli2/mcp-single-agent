@@ -100,7 +100,6 @@ async def run(mcp_server: MCPServer):
                     print("-- Tool call completed.")
                 elif event.item.type == "message_output_item":
                     input_items.append({"content": f"{event.item.raw_item.content[0].text}", "role": "assistant"})
-                    pass
                 else:
                     pass  # Ignore other event types
 

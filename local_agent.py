@@ -277,7 +277,7 @@ class LocalYouTubeAgent:
     def extract_urls_from_text(self, text: str) -> List[str]:
         """Extract URLs from text using regex - generic utility"""
         import re
-        url_pattern = r'https?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:#(?:\w*))?)?'
+        url_pattern = r'https?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_\.])*(?:\?(?:[\w&=%.])*)?(?:#(?:\w*))?)?'
         urls = re.findall(url_pattern, text)
         return urls
 

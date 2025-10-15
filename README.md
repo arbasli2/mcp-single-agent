@@ -50,7 +50,7 @@ EOF
 
 4. **Run the agent**
    ```bash
-   uv run main.py
+   uv run openai_agent.py
    ```
 
 5. **Interact with agent**
@@ -101,7 +101,7 @@ EOF
 
 5. **Run the agent**
    ```bash
-   python main.py
+   python openai_agent.py
    ```
 
 6. **Interact with agent**
