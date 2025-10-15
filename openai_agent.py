@@ -60,19 +60,26 @@ async def run(mcp_server: MCPServer):
 
     print("=== YouTube Agent ===")
     print("Type 'exit' to end the conversation")
+    print("Type 'reset' to clear context before a new request")
 
     while True:
         # Get user input
         user_input = input("\nUser: ").strip()
-        input_items.append({"content": user_input, "role": "user"})
         
         # Check for exit command
         if user_input.lower() in ['exit', 'quit', 'bye']:
             print("\nGoodbye!")
             break
+
+        if user_input.lower() in ['reset', 'clear', 'new']:
+            input_items.clear()
+            print("\n🔄 Conversation context cleared. Start with a new request.")
+            continue
             
         if not user_input:
             continue
+
+        input_items.append({"content": user_input, "role": "user"})
 
         result = Runner.run_streamed(
             agent,

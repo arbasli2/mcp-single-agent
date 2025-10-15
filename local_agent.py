@@ -44,6 +44,11 @@ class LocalYouTubeAgent:
         self.mcp_session = None
         self.system_instructions = ""
         
+    def reset_conversation(self) -> None:
+        """Clear the running conversation history so the next turn is fresh."""
+        self.conversation_history.clear()
+        print("\n🔄 Conversation context cleared. Start with a new request.\n")
+
     async def start_mcp_server(self):
         """Start the MCP server and get system instructions"""
         server_params = StdioServerParameters(
@@ -285,6 +290,7 @@ class LocalYouTubeAgent:
         """Main conversation loop"""
         print("=== YouTube Agent (Local LLM Version) ===")
         print("Type 'exit' to end the conversation")
+        print("Type 'reset' to clear context before a new request")
         print()
         
         while True:
@@ -297,6 +303,10 @@ class LocalYouTubeAgent:
                     print("\nGoodbye!")
                     break
                 
+                if user_input.lower() in ['reset', 'clear', 'new']:
+                    self.reset_conversation()
+                    continue
+
                 if not user_input:
                     continue
                 
