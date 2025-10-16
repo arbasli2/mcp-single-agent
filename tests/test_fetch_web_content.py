@@ -15,15 +15,15 @@ from unittest.mock import MagicMock, patch
 
 
 def _load_mcp_module() -> ModuleType:
-    """Load the yt-mcp module directly from its path for test usage."""
+    """Load the content_mcp module directly from its path for test usage."""
     module_path = (
         Path(__file__).resolve().parents[1]
         / "mcp-server"
-        / "yt-mcp.py"
+        / "content_mcp.py"
     )
-    spec = importlib.util.spec_from_file_location("yt_mcp", module_path)
+    spec = importlib.util.spec_from_file_location("content_mcp", module_path)
     if spec is None or spec.loader is None:
-        raise RuntimeError("Unable to load yt-mcp module for testing")
+        raise RuntimeError("Unable to load content_mcp module for testing")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
@@ -31,11 +31,11 @@ def _load_mcp_module() -> ModuleType:
 
 
 class FetchWebContentTests(TestCase):
-    yt_mcp: ClassVar[ModuleType]
+    content_mcp: ClassVar[ModuleType]
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.yt_mcp = _load_mcp_module()
+        cls.content_mcp = _load_mcp_module()
 
     def test_fetch_web_content_extracts_readable_text(self) -> None:
         html = (
@@ -49,8 +49,8 @@ class FetchWebContentTests(TestCase):
         mock_response.headers.get_content_charset.return_value = "utf-8"
         mock_response.__enter__.return_value = mock_response
 
-        with patch.object(self.yt_mcp.urlrequest, "urlopen", return_value=mock_response):
-            result = self.yt_mcp.fetch_web_content("https://example.com/test")
+        with patch.object(self.content_mcp.urlrequest, "urlopen", return_value=mock_response):
+            result = self.content_mcp.fetch_web_content("https://example.com/test")
 
         self.assertEqual(result, "Title\nParagraph 1\nParagraph 2")
 
@@ -61,8 +61,8 @@ class FetchWebContentTests(TestCase):
         mock_response.headers.get_content_charset.return_value = "utf-8"
         mock_response.__enter__.return_value = mock_response
 
-        with patch.object(self.yt_mcp.urlrequest, "urlopen", return_value=mock_response):
-            result = self.yt_mcp.fetch_web_content("https://example.com/long", max_chars=100)
+        with patch.object(self.content_mcp.urlrequest, "urlopen", return_value=mock_response):
+            result = self.content_mcp.fetch_web_content("https://example.com/long", max_chars=100)
 
         self.assertTrue(result.endswith("...[truncated]"))
         self.assertLessEqual(len(result), 100 + len("\n\n...[truncated]"))
@@ -90,7 +90,7 @@ class FetchWebContentTests(TestCase):
             host = server.server_address[0]
             port = server.server_port
             url = f"http://{host}:{port}/"
-            result = self.yt_mcp.fetch_web_content(url)
+            result = self.content_mcp.fetch_web_content(url)
         finally:
             server.shutdown()
             server.server_close()
@@ -101,26 +101,26 @@ class FetchWebContentTests(TestCase):
 
     def test_fetch_web_content_rejects_non_http_url(self) -> None:
         with self.assertRaises(ValueError):
-            self.yt_mcp.fetch_web_content("ftp://example.com/resource")
+            self.content_mcp.fetch_web_content("ftp://example.com/resource")
 
     def test_fetch_web_content_surfaces_network_errors(self) -> None:
         with patch.object(
-            self.yt_mcp.urlrequest,
+            self.content_mcp.urlrequest,
             "urlopen",
-            side_effect=self.yt_mcp.urlerror.URLError("timeout"),
+            side_effect=self.content_mcp.urlerror.URLError("timeout"),
         ):
             with self.assertRaises(Exception) as exc:
-                self.yt_mcp.fetch_web_content("https://example.com/boom")
+                self.content_mcp.fetch_web_content("https://example.com/boom")
 
         self.assertIn("timeout", str(exc.exception))
 
     def test_fetch_web_content_reports_socket_timeout(self) -> None:
         with patch.object(
-            self.yt_mcp.urlrequest,
+            self.content_mcp.urlrequest,
             "urlopen",
-            side_effect=self.yt_mcp.urlerror.URLError(socket.timeout("timed out")),
+            side_effect=self.content_mcp.urlerror.URLError(socket.timeout("timed out")),
         ):
             with self.assertRaises(Exception) as exc:
-                self.yt_mcp.fetch_web_content("https://example.com/slow", timeout_seconds=3)
+                self.content_mcp.fetch_web_content("https://example.com/slow", timeout_seconds=3)
 
         self.assertIn("Timed out after 3 seconds", str(exc.exception))

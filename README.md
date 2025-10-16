@@ -1,16 +1,16 @@
-# yt-mcp-agent
-A YouTube video agent built using a custom MCP server and OpenAI's Agent's SDK. It can extract video transcripts given link fetch specialized instructions for things like: writing blog posts, video chapters, and social posts.
+# content-mcp-agent
+A multi-purpose content agent built with a custom MCP server and OpenAI-compatible clients. It can pull YouTube transcripts, fetch reusable writing instructions, and scrape public webpages to support flexible content workflows.
 
 Resources:
 - [Talk recording](https://youtu.be/w-Ml3NivoFo)
 - [Slides](https://drive.google.com/file/d/1id7V9nrNetW72k6vERS6oTy0bW0wEloo/view?usp=sharing)
 
->This example is a prelude to [Cohort 7](https://github.com/ShawhinT/AI-Builders-Bootcamp-7/tree/main) of the [AI Builders Bootcamp](https://maven.com/shaw-talebi/ai-builders-bootcamp).
+> This example is a prelude to [Cohort 7](https://github.com/ShawhinT/AI-Builders-Bootcamp-7/tree/main) of the [AI Builders Bootcamp](https://maven.com/shaw-talebi/ai-builders-bootcamp).
 
 ## Requirements
 
 - Python 3.13+
-- A local LLM server (LM Studio, Ollama, etc.) OR OpenAI API key
+- A local LLM server (LM Studio, Ollama, etc.) **or** an OpenAI API key
 - `uv` package manager (recommended)
 
 ## How to run this example
@@ -20,7 +20,7 @@ Resources:
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd yt-mcp-agent
+   cd content-mcp-agent
    ```
 
 2. **Install dependencies with uv**
@@ -53,19 +53,19 @@ EOF
    uv run openai_agent.py
    ```
 
-5. **Interact with agent**
+5. **Interact with the agent**
    
-   Once running, you can ask the agent to analyze YouTube videos. Try prompts like:
-   - "Summarize this: https://youtu.be/N3vHJcHBS-w?si=aw8PV0acYHJGPy7R"
-   - "Generate chapter timestamps with links"
-   - "Write me a LinkedIn post about the video"
+   Once running, you can combine the available tools in one request. Sample prompts:
+   - "Summarize this video and cite timecodes: https://youtu.be/N3vHJcHBS-w"
+   - "Pull background facts from https://example.com and draft a LinkedIn post"
+   - "Generate chapter timestamps and a blog outline for this talk"
 
 ### Base Python/pip
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd yt-mcp-agent
+   cd content-mcp-agent
    ```
 
 2. **Create a virtual environment**
@@ -104,7 +104,10 @@ EOF
    python openai_agent.py
    ```
 
-6. **Interact with agent**
+6. **Interact with the agent**
+   - Ask for YouTube transcripts when you need video context
+   - Fetch instructions before drafting blogs or social posts
+   - Pull supporting material from web pages using the fetcher tool
 
 ## Using Local LLMs (Default)
 

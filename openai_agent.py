@@ -1,6 +1,5 @@
-from agents import Agent, Runner
-from agents.mcp import MCPServerStdio, MCPServer
 from agents import Agent, Runner, gen_trace_id, trace
+from agents.mcp import MCPServerStdio, MCPServer
 from openai.types.responses import ResponseTextDeltaEvent
 import asyncio
 
@@ -26,10 +25,10 @@ else:
 
 async def main():
     async with MCPServerStdio(
-        name="YouTube MCP Server",
+        name="Content MCP Server",
         params={
             "command": "uv",
-            "args": ["run", "mcp-server/yt-mcp.py"],
+            "args": ["run", "mcp-server/content_mcp.py"],
         },
     ) as server:
         # Only use OpenAI tracing when using OpenAI's API
@@ -37,7 +36,7 @@ async def main():
         
         if use_openai:
             trace_id = gen_trace_id()
-            with trace(workflow_name="YT MCP Agent Example", trace_id=trace_id):
+            with trace(workflow_name="Content MCP Agent Example", trace_id=trace_id):
                 print(f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}\n")
                 await run(server)
         else:
@@ -51,14 +50,14 @@ async def run(mcp_server: MCPServer):
     
     # create agent
     agent = Agent(
-        name="YouTube Video Agent",
+        name="Content Agent",
         instructions=instructions,
         mcp_servers=[mcp_server],
     )
     
     input_items = []
 
-    print("=== YouTube Agent ===")
+    print("=== Content Agent ===")
     print("Type 'exit' to end the conversation")
     print("Type 'reset' to clear context before a new request")
 

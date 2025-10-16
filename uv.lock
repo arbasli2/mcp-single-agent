@@ -1744,7 +1744,7 @@ wheels = [
 ]
 
 [[package]]
-name = "yt-mcp-agent"
+name = "content-mcp-agent"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

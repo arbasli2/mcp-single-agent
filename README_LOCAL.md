@@ -1,5 +1,5 @@
-# yt-mcp-agent
-A  agent built using a custom MCP server that works with both OpenAI's API and local LLMs. It can extract video transcripts and fetch specialized instructions for writing blog posts, video chapters, and social posts. It also can fetch web pages.
+# content-mcp-agent
+A multi-purpose content agent built on a custom MCP server that works with both OpenAI's API and local LLMs. It can extract YouTube transcripts, fetch specialized writing instructions, and scrape web pages to support end-to-end content workflows.
 
 ## 🆕 Local LLM Support
 This project now includes **`local_agent.py`** - a simplified version that works with local LLMs without requiring OpenAI's proprietary Agents SDK.
@@ -30,7 +30,7 @@ Resources:
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd yt-mcp-agent
+   cd content-mcp-agent
    ```
 
 2. **Install dependencies with uv**
@@ -55,9 +55,9 @@ EOF
    ```bash
    cat > .env << EOF
    LOCAL_LLM_BASE_URL=http://192.168.178.61:1234/v1
-LOCAL_LLM_API_KEY=lm-studio
-LOCAL_LLM_MODEL=qwen/qwen3-4b
-EOF
+   LOCAL_LLM_API_KEY=lm-studio
+   LOCAL_LLM_MODEL=qwen/qwen3-4b
+   EOF
    ```
 
 4. **Run the local agent**
@@ -65,12 +65,12 @@ EOF
    uv run local_agent.py
    ```
 
-5. **Interact with agent**
-   
-   Once running, you can ask the agent to analyze YouTube videos. Try prompts like:
-   - "Summarize this: https://youtu.be/N3vHJcHBS-w?si=aw8PV0acYHJGPy7R"
-   - "Generate chapter timestamps for this video: [URL]"
-   - "Write me a LinkedIn post about this video: [URL]"
+5. **Interact with the agent**
+
+   Once running, you can mix and match the available tools. Try prompts like:
+   - "Summarize this video and cite timestamps: https://youtu.be/N3vHJcHBS-w"
+   - "Fetch https://example.com/news and draft a LinkedIn post"
+   - "Generate blog post, social copy, and video chapters for this talk"
 
 ### Multi-step tool planning
 
@@ -144,7 +144,7 @@ If you're running this in WSL and your LLM server is on Windows:
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd yt-mcp-agent
+   cd content-mcp-agent
    ```
 
 2. **Create a virtual environment**

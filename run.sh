@@ -1,8 +1,8 @@
 #!/bin/bash
-# YouTube MCP Agent Launcher
+# Content MCP Agent Launcher
 # This script helps you choose between the local LLM version and OpenAI version
 
-echo "🎥 YouTube MCP Agent Launcher"
+echo "🛠️ Content MCP Agent Launcher"
 echo "=============================="
 echo ""
 echo "Choose your version:"

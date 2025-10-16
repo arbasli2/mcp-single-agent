@@ -9,7 +9,7 @@ youtube-agent/
 ├── openai_agent.py  # OpenAI Responses API entry point
 ├── local_agent.py   # Local LLM entry point
 └── mcp-server/
-    ├── yt-mcp.py
+    ├── content_mcp.py
     └── prompts/
         ├── system_instructions.md
         ├── write_blog_post.md
