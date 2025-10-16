@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import importlib.util
+import socket
 import sys
 from pathlib import Path
+from threading import Thread
 from types import ModuleType
 from typing import ClassVar
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from threading import Thread
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -112,3 +113,14 @@ class FetchWebContentTests(TestCase):
                 self.yt_mcp.fetch_web_content("https://example.com/boom")
 
         self.assertIn("timeout", str(exc.exception))
+
+    def test_fetch_web_content_reports_socket_timeout(self) -> None:
+        with patch.object(
+            self.yt_mcp.urlrequest,
+            "urlopen",
+            side_effect=self.yt_mcp.urlerror.URLError(socket.timeout("timed out")),
+        ):
+            with self.assertRaises(Exception) as exc:
+                self.yt_mcp.fetch_web_content("https://example.com/slow", timeout_seconds=3)
+
+        self.assertIn("Timed out after 3 seconds", str(exc.exception))

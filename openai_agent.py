@@ -97,7 +97,7 @@ async def run(mcp_server: MCPServer):
                     tool_name = event.item.raw_item.name
                     if tool_name == "fetch_video_transcript":
                         status_msg = "\n-- Fetching transcript..."
-                    elif tool_name == "fetch_intstructions":
+                    elif tool_name == "fetch_instructions":
                         status_msg = "\n-- Fetching instructions..."
                     else:
                         status_msg = f"\n-- Calling {tool_name}..."

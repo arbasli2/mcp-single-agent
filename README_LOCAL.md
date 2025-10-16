@@ -1,5 +1,5 @@
 # yt-mcp-agent
-A YouTube video agent built using a custom MCP server that works with both OpenAI's API and local LLMs. It can extract video transcripts and fetch specialized instructions for writing blog posts, video chapters, and social posts.
+A  agent built using a custom MCP server that works with both OpenAI's API and local LLMs. It can extract video transcripts and fetch specialized instructions for writing blog posts, video chapters, and social posts. It also can fetch web pages.
 
 ## 🆕 Local LLM Support
 This project now includes **`local_agent.py`** - a simplified version that works with local LLMs without requiring OpenAI's proprietary Agents SDK.
@@ -54,7 +54,7 @@ EOF
    **For LM Studio:**
    ```bash
    cat > .env << EOF
-LOCAL_LLM_BASE_URL=http://localhost:1234/v1
+   LOCAL_LLM_BASE_URL=http://192.168.178.61:1234/v1
 LOCAL_LLM_API_KEY=lm-studio
 LOCAL_LLM_MODEL=qwen/qwen3-4b
 EOF
@@ -71,6 +71,13 @@ EOF
    - "Summarize this: https://youtu.be/N3vHJcHBS-w?si=aw8PV0acYHJGPy7R"
    - "Generate chapter timestamps for this video: [URL]"
    - "Write me a LinkedIn post about this video: [URL]"
+
+### Multi-step tool planning
+
+- Type `reset` whenever you want to clear the conversation memory before giving a new request.
+- The agent now reasons in steps: it can fetch web content, pull the right writing instructions, and then craft the final answer in one conversation turn.
+- Each MCP tool call is streamed back to you so you can see the plan unfold (e.g., `fetch_web_content` → `fetch_instructions` → final draft).
+- Keep prompts explicit about the desired output so the planner chooses the correct sequence of tools.
 
 ### Original OpenAI Version (requires OpenAI API access)
 
@@ -106,7 +113,7 @@ If you're running this in WSL and your LLM server is on Windows:
    Example:
    ```bash
    LOCAL_LLM_BASE_URL=http://10.169.34.79:11434/v1  # Ollama
-   LOCAL_LLM_BASE_URL=http://10.169.34.79:1234/v1   # LM Studio
+   LOCAL_LLM_BASE_URL=http://192.168.178.61:1234/v1  # LM Studio
    ```
 
 ### Supported Local LLM Servers

@@ -109,54 +109,94 @@ class LocalYouTubeAgent:
             return f"Error calling tool {tool_name}: {str(e)}"
 
     async def process_message(self, user_input: str) -> str:
-        """Process a user message and return the assistant's response"""
-        # Add user message to conversation history
+        """Process a user message and support multi-step MCP tool plans."""
+        # Add the incoming user turn to the running history
         self.conversation_history.append({"role": "user", "content": user_input})
-        
-        # First, let the LLM decide what tools (if any) it needs to use
-        tool_decision = await self.decide_tools_needed(user_input)
-        
-        # Execute any tools the LLM requested
-        tool_results = []
-        if tool_decision.get("tools_needed"):
-            for tool_call in tool_decision["tools_needed"]:
-                tool_name = tool_call["name"]
-                tool_args = tool_call["arguments"]
-                
-                print(f"-- Calling {tool_name}...")
-                result = await self.call_mcp_tool(tool_name, tool_args)
-                tool_results.append({
-                    "tool": tool_name,
-                    "result": result
-                })
-        
-        # Prepare messages for the final LLM call
-        messages = [{"role": "system", "content": self.system_instructions}]
+
+        # Construct the working message list that will be sent to the model
+        messages: List[Dict[str, Any]] = []
+        if self.system_instructions:
+            messages.append({"role": "system", "content": self.system_instructions})
         messages.extend(self.conversation_history)
-        
-        # Add tool results to context if any
-        if tool_results:
-            tool_context = "Tool execution results:\n\n"
-            for tr in tool_results:
-                tool_context += f"Tool: {tr['tool']}\nResult: {tr['result']}\n\n"
-            messages.append({"role": "user", "content": tool_context})
-        
+
+        available_tools = await self.get_available_tools_for_function_calling()
+
+        assistant_response: str = ""
+
         try:
-            # Call the LLM for the final response
-            response = await self.client.chat.completions.create(
-                model=self.get_model_name(),
-                messages=messages,
-                temperature=0.7,
-                max_tokens=2000
-            )
-            
-            assistant_response = response.choices[0].message.content
-            
-            # Add assistant response to conversation history
+            while True:
+                request_payload: Dict[str, Any] = {
+                    "model": self.get_model_name(),
+                    "messages": messages,
+                    "temperature": 0.3,
+                    "max_tokens": 2000,
+                }
+                if available_tools:
+                    request_payload["tools"] = available_tools
+                    request_payload["tool_choice"] = "auto"
+
+                response = await self.client.chat.completions.create(**request_payload)
+                message = response.choices[0].message
+
+                content_text = message.content or ""
+                assistant_message: Dict[str, Any] = {"role": "assistant", "content": content_text}
+
+                tool_calls = getattr(message, "tool_calls", None)
+                if tool_calls and available_tools:
+                    # Capture the assistant tool call for the conversation trace
+                    serialized_calls: List[Dict[str, Any]] = []
+                    tool_results_messages: List[Dict[str, Any]] = []
+
+                    for tool_call in tool_calls:
+                        function_obj = getattr(tool_call, "function", None)
+                        call_id = getattr(tool_call, "id", "")
+                        if function_obj:
+                            function_name = getattr(function_obj, "name", "")
+                            raw_arguments = getattr(function_obj, "arguments", "{}")
+                        else:
+                            function_name = getattr(tool_call, "name", "")
+                            raw_arguments = getattr(tool_call, "arguments", "{}")
+
+                        try:
+                            parsed_arguments = json.loads(raw_arguments or "{}")
+                        except json.JSONDecodeError:
+                            parsed_arguments = {}
+
+                        print(f"-- Calling {function_name}...")
+                        tool_output = await self.call_mcp_tool(function_name, parsed_arguments)
+
+                        serialized_calls.append({
+                            "id": call_id,
+                            "type": "function",
+                            "function": {
+                                "name": function_name,
+                                "arguments": json.dumps(parsed_arguments),
+                            },
+                        })
+
+                        tool_results_messages.append({
+                            "role": "tool",
+                            "tool_call_id": call_id,
+                            "name": function_name,
+                            "content": tool_output,
+                        })
+
+                    assistant_message["tool_calls"] = serialized_calls
+                    messages.append(assistant_message)
+                    messages.extend(tool_results_messages)
+                    # Continue the loop so the model can react to tool output
+                    continue
+
+                # No further tool use requested; finalize the assistant response
+                messages.append(assistant_message)
+                assistant_response = content_text
+                break
+
+            # Record the final assistant turn for future dialogue context
             self.conversation_history.append({"role": "assistant", "content": assistant_response})
-            
+
             return assistant_response
-            
+
         except Exception as e:
             return f"Error: {str(e)}"
 

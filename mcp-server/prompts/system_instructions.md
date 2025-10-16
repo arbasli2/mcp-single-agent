@@ -23,8 +23,9 @@ To fetch the correct instructions, pass one of the following **exact** prompts:
 Important: Do **not** guess how to complete these tasks. Always fetch the instructions and follow them exactly.
 
 ### fetch_web_content
-Use this tool when you given a url (other than from youtube).
+Use this tool whenever you need background information from a non-YouTube webpage.
 
 - Provide the full http(s) URL.
+- Optionally set `timeout_seconds` (default 20s) if the site is slow to respond.
 - The tool returns extracted readable text, truncated when responses get too long.
 - Cite the relevant sections from the fetched content in your response.

@@ -2,6 +2,7 @@ from mcp.server.fastmcp import FastMCP
 from youtube_transcript_api import YouTubeTranscriptApi
 import re
 import os
+import socket
 from html.parser import HTMLParser
 from urllib import error as urlerror
 from urllib import parse as urlparse
@@ -72,7 +73,7 @@ def fetch_video_transcript(url: str) -> str:
         raise Exception(f"Error fetching transcript: {str(e)}")
 
 @mcp.tool()
-def fetch_intstructions(prompt_name: str) -> str:
+def fetch_instructions(prompt_name: str) -> str:
     """
     Fetch specialized writing instructions and guidelines for creating different types of content.
 
@@ -138,12 +139,13 @@ class _HTMLTextExtractor(HTMLParser):
 
 
 @mcp.tool()
-def fetch_web_content(url: str, max_chars: int = 6000) -> str:
+def fetch_web_content(url: str, max_chars: int = 6000, timeout_seconds: int = 20) -> str:
     """Fetch readable text content from a public webpage.
 
     Args:
         url (str): HTTP or HTTPS URL to fetch.
         max_chars (int): Optional upper bound on returned characters to prevent huge responses.
+        timeout_seconds (int): Maximum seconds to wait for the HTTP request.
 
     Returns:
         str: Extracted body text, truncated to ``max_chars`` characters when needed.
@@ -152,13 +154,17 @@ def fetch_web_content(url: str, max_chars: int = 6000) -> str:
     if parsed.scheme not in {"http", "https"}:
         raise ValueError("Only http and https URLs are supported")
 
+    timeout = max(1, min(int(timeout_seconds), 120))
     req = urlrequest.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; yt-mcp-agent/1.0)"})
     try:
-        with urlrequest.urlopen(req, timeout=15) as response:
+        with urlrequest.urlopen(req, timeout=timeout) as response:
             charset = response.headers.get_content_charset() or "utf-8"
             html_bytes = response.read()
     except urlerror.URLError as exc:
-        raise Exception(f"Error fetching URL: {exc.reason}")
+        reason = exc.reason
+        if isinstance(reason, socket.timeout):
+            raise Exception(f"Timed out after {timeout} seconds while fetching the URL")
+        raise Exception(f"Error fetching URL: {reason}")
 
     try:
         html_text = html_bytes.decode(charset, errors="replace")
