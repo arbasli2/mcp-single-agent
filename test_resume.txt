@@ -1,0 +1,15 @@
+This is a test resume file.
+
+JOHN DOE
+Software Engineer
+
+Experience:
+- 5 years of Python development
+- 3 years of web development
+- Expert in FastAPI and Django
+
+Skills:
+- Python, JavaScript, TypeScript
+- React, Vue.js
+- Docker, Kubernetes
+- AWS, GCP

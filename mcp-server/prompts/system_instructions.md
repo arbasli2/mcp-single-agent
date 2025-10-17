@@ -30,3 +30,10 @@ Use this tool whenever you need background information from a non-YouTube webpag
 - Optionally set `timeout_seconds` (default 20s) if the site is slow to respond.
 - The tool returns extracted readable text, truncated when responses get too long.
 - Cite the relevant sections from the fetched content in your response.
+
+### read_file
+Use this tool to inspect local documents when the user provides a file path.
+
+- Supported formats: `.txt`, `.md`, `.markdown`, `.doc`, `.docx`, `.pdf`.
+- Provide the absolute or relative path and optionally a `max_chars` limit (default 6000).
+- If the extracted text is truncated, make a follow-up call with a higher limit only when necessary.
