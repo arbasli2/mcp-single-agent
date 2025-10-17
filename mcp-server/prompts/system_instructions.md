@@ -26,10 +26,17 @@ Important: Do **not** guess how to complete these tasks. Always fetch the instru
 ### fetch_web_content
 Use this tool whenever you need background information from a non-YouTube webpage.
 
-- Provide the full http(s) URL.
-- Optionally set `timeout_seconds` (default 20s) if the site is slow to respond.
-- The tool returns extracted readable text, truncated when responses get too long.
-- Cite the relevant sections from the fetched content in your response.
+
+### search_web
+Use this tool to discover relevant sources before diving into transcripts or direct fetches.
+
+- Requires `GOOGLE_CSE_API_KEY` and `GOOGLE_CSE_ID` in the environment.
+- Pass the topic in `query` and adjust `max_results` (1-10) when you need multiple leads.
+- Each result includes a URL and snippet—follow up with `fetch_web_content` for deeper quotes.
+### search_youtube_videos
+Use this tool to find candidate YouTube videos before requesting transcripts.
+
+- Pass the topic in `query` and set `max_results` (1-10) if you need multiple options.
 
 ### read_file
 Use this tool to inspect local documents when the user provides a file path.

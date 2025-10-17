@@ -1,14 +1,18 @@
 from pathlib import Path
 import importlib
+import json
 import logging
 import os
 import re
 import socket
 import sys
+from html import unescape
 from html.parser import HTMLParser
 from urllib import error as urlerror
 from urllib import parse as urlparse
 from urllib import request as urlrequest
+
+from dotenv import load_dotenv
 
 from mcp.server.fastmcp import FastMCP
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -62,6 +66,9 @@ def _debug_log(message: str) -> None:
         _LOGGER.info(f"[debug] {message}")
     else:
         _LOGGER.debug(f"[debug] {message}")
+
+# Load environment configuration (includes optional YouTube API key)
+load_dotenv()
 
 # Create an MCP server
 mcp = FastMCP("content-mcp")
@@ -158,6 +165,110 @@ def fetch_instructions(prompt_name: str) -> str:
     with open(prompt_path, "r") as f:
         return f.read()
 
+
+@mcp.tool()
+def search_youtube_videos(query: str, max_results: int = 5) -> str:
+    """Search YouTube and return the first ``max_results`` video URLs.
+
+    Args:
+        query (str): Search terms to send to the YouTube Data API.
+        max_results (int): Number of video URLs to surface (1-10 allowed).
+
+    Returns:
+        str: A numbered list of video titles with their corresponding URLs.
+    """
+    logging.info(
+        "Searching YouTube for query=%s (max_results=%s)",
+        query,
+        max_results,
+    )
+
+    api_key = os.getenv("YOUTUBE_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "Missing YOUTUBE_API_KEY environment variable required for YouTube search."
+        )
+
+    try:
+        limit = int(max_results)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("max_results must be an integer between 1 and 10") from exc
+
+    limit = max(1, min(limit, 10))
+
+    params = {
+        "part": "snippet",
+        "type": "video",
+        "safeSearch": "none",
+        "q": query,
+        "maxResults": limit,
+        "key": api_key,
+    }
+    endpoint = "https://www.googleapis.com/youtube/v3/search"
+    request_url = f"{endpoint}?{urlparse.urlencode(params)}"
+
+    req = urlrequest.Request(
+        request_url,
+        headers={"User-Agent": "content-mcp-agent/1.0"},
+    )
+
+    try:
+        with urlrequest.urlopen(req, timeout=15) as response:
+            payload = response.read().decode("utf-8", errors="replace")
+    except urlerror.HTTPError as exc:
+        logging.error("YouTube API HTTP error: %s", exc)
+        error_text = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
+        if error_text:
+            try:
+                error_json = json.loads(error_text)
+                message = error_json.get("error", {}).get("message", error_text)
+            except json.JSONDecodeError:
+                message = error_text
+        else:
+            message = str(exc)
+        raise RuntimeError(f"YouTube API returned an error: {message}") from exc
+    except urlerror.URLError as exc:
+        logging.error("Failed to reach YouTube API: %s", exc)
+        raise RuntimeError(f"Unable to reach YouTube API: {exc.reason}") from exc
+
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        logging.error("Invalid JSON from YouTube API: %s", exc)
+        raise RuntimeError("Received invalid JSON from YouTube API") from exc
+
+    items = data.get("items", [])
+    if not items:
+        logging.info("YouTube search returned no results for query=%s", query)
+        return "No videos found for that query."
+
+    lines: list[str] = []
+    for index, item in enumerate(items, start=1):
+        video_id = (
+            item.get("id", {}).get("videoId")
+            if isinstance(item.get("id"), dict)
+            else None
+        )
+        snippet = item.get("snippet", {}) if isinstance(item.get("snippet"), dict) else {}
+        title = snippet.get("title", "Untitled video").strip()
+
+        if not video_id:
+            logging.warning("Skipping search result without videoId: %s", item)
+            continue
+
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        lines.append(f"{index}. {title} - {url}")
+
+    if not lines:
+        logging.info("All search results missing video IDs for query=%s", query)
+        return "No usable video results were returned."
+
+    logging.info(
+        "YouTube search returning %s video(s) for query=%s",
+        len(lines),
+        query,
+    )
+    return "\n".join(lines)
 
 # Helper functions for file reading
 def _read_text_file(path: Path) -> str:
@@ -359,6 +470,111 @@ def read_file(file_path: str, max_chars: int = 6000) -> str:
 
     _debug_log(f"Content truncated from length={len(cleaned)} to limit={limit}")
     logging.info(f"Successfully read file {file_path} (truncated from {len(cleaned)} to {limit} chars)")
+@mcp.tool()
+def search_web(query: str, max_results: int = 5) -> str:
+    """Search the web using Google Programmable Search Engine.
+
+    Args:
+        query (str): Search terms to send to Google.
+        max_results (int): Number of results to return (1-10 allowed).
+
+    Returns:
+        str: A numbered list of titles, URLs, and snippets.
+    """
+    logging.info(
+        "Searching web for query=%s (max_results=%s)",
+        query,
+        max_results,
+    )
+
+    api_key = os.getenv("GOOGLE_CSE_API_KEY")
+    search_id = os.getenv("GOOGLE_CSE_ID")
+    if not api_key or not search_id:
+        raise RuntimeError(
+            "Missing GOOGLE_CSE_API_KEY or GOOGLE_CSE_ID environment variable required for web search."
+        )
+
+    try:
+        limit = int(max_results)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("max_results must be an integer between 1 and 10") from exc
+
+    limit = max(1, min(limit, 10))
+
+    params = {
+        "key": api_key,
+        "cx": search_id,
+        "q": query,
+        "num": limit,
+        "safe": "off",
+    }
+    endpoint = "https://www.googleapis.com/customsearch/v1"
+    request_url = f"{endpoint}?{urlparse.urlencode(params)}"
+
+    req = urlrequest.Request(
+        request_url,
+        headers={"User-Agent": "content-mcp-agent/1.0"},
+    )
+
+    try:
+        with urlrequest.urlopen(req, timeout=15) as response:
+            payload = response.read().decode("utf-8", errors="replace")
+    except urlerror.HTTPError as exc:
+        logging.error("Google CSE HTTP error: %s", exc)
+        error_text = exc.read().decode("utf-8", errors="ignore") if exc.fp else ""
+        if error_text:
+            try:
+                error_json = json.loads(error_text)
+                message = error_json.get("error", {}).get("message", error_text)
+            except json.JSONDecodeError:
+                message = error_text
+        else:
+            message = str(exc)
+        raise RuntimeError(f"Google search API returned an error: {message}") from exc
+    except urlerror.URLError as exc:
+        logging.error("Failed to reach Google search API: %s", exc)
+        raise RuntimeError(f"Unable to reach Google search API: {exc.reason}") from exc
+
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        logging.error("Invalid JSON from Google search API: %s", exc)
+        raise RuntimeError("Received invalid JSON from Google search API") from exc
+
+    items = data.get("items", [])
+    if not items:
+        logging.info("Google search returned no results for query=%s", query)
+        return "No web results found for that query."
+
+    lines: list[str] = []
+    for index, item in enumerate(items, start=1):
+        title = unescape(item.get("title", "Untitled result").strip())
+        url = item.get("link", "").strip()
+        snippet_raw = item.get("snippet", "")
+        snippet = " ".join(unescape(snippet_raw).split())
+
+        if not url:
+            logging.warning("Skipping search result without link: %s", item)
+            continue
+
+        lines.append(
+            f"{index}. {title}\n"
+            f"   URL: {url}\n"
+            f"   Snippet: {snippet}"
+        )
+
+    if not lines:
+        logging.info("All search results missing URLs for query=%s", query)
+        return "No usable web results were returned."
+
+    logging.info(
+        "Google search returning %s result(s) for query=%s",
+        len(lines),
+        query,
+    )
+    return "\n".join(lines)
+
+
     return f"{cleaned[:limit]}\n\n...[truncated]"
 
 
