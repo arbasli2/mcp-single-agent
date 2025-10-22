@@ -134,6 +134,7 @@ class LocalContentAgent:
         available_tools = await self.get_available_tools_for_function_calling(user_input)
 
         assistant_response: str = ""
+        recent_tool_calls: List[str] = []  # Track recent tool calls to detect loops
 
         try:
             while True:
@@ -158,6 +159,28 @@ class LocalContentAgent:
 
                 tool_calls = getattr(message, "tool_calls", None)
                 if tool_calls and available_tools:
+                    # Check for repeated identical tool calls (potential infinite loop)
+                    current_calls = []
+                    for tool_call in tool_calls:
+                        function_obj = getattr(tool_call, "function", None)
+                        if function_obj:
+                            function_name = getattr(function_obj, "name", "")
+                            raw_arguments = getattr(function_obj, "arguments", "{}")
+                        else:
+                            function_name = getattr(tool_call, "name", "")
+                            raw_arguments = getattr(tool_call, "arguments", "{}")
+                        
+                        call_signature = f"{function_name}({raw_arguments})"
+                        current_calls.append(call_signature)
+                    
+                    # If we've seen these exact calls recently, break the loop
+                    if current_calls == recent_tool_calls:
+                        print("⚠️  Detected repeated identical tool calls. Breaking loop to prevent infinite recursion.")
+                        assistant_response = content_text or "I was able to fetch the information but encountered an issue processing it. Please try a different approach or rephrase your request."
+                        break
+                    
+                    recent_tool_calls = current_calls
+                    
                     # Capture the assistant tool call for the conversation trace
                     serialized_calls: List[Dict[str, Any]] = []
                     tool_results_messages: List[Dict[str, Any]] = []
@@ -179,6 +202,7 @@ class LocalContentAgent:
 
                         print(f"-- Calling {function_name}...")
                         tool_output = await self.call_mcp_tool(function_name, parsed_arguments)
+                        print(f"-- Tool completed: {len(tool_output)} characters returned")
 
                         serialized_calls.append({
                             "id": call_id,
@@ -199,10 +223,16 @@ class LocalContentAgent:
                     assistant_message["tool_calls"] = serialized_calls
                     messages.append(assistant_message)
                     messages.extend(tool_results_messages)
+                    
+                    # Debug: Print current conversation state
+                    print(f"-- Added {len(tool_results_messages)} tool result(s) to conversation")
+                    print(f"-- Current conversation has {len(messages)} messages")
+                    
                     # Continue the loop so the model can react to tool output
                     continue
 
                 # No further tool use requested; finalize the assistant response
+                print("-- Model provided final response (no more tool calls)")
                 messages.append(assistant_message)
                 assistant_response = content_text
                 break

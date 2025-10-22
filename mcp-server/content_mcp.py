@@ -86,7 +86,7 @@ def system_prompt() -> str:
 
 # Create tool
 @mcp.tool()
-def fetch_video_transcript(url: str) -> str:
+def fetch_video_transcript(url: str, max_chars: int = 6000) -> str:
     """
     Extract transcript with timestamps from a YouTube video URL and format it for analysis.
 
@@ -97,12 +97,13 @@ def fetch_video_transcript(url: str) -> str:
 
     Args:
         url (str): YouTube video URL (youtube.com or youtu.be format)
+        max_chars (int): Optional upper bound on returned characters (default 6000)
 
     Returns:
         str: Formatted transcript with timestamps, where each entry is on a new line
-             in the format: "[MM:SS] Text"
+             in the format: "[MM:SS] Text", truncated if necessary
     """
-    logging.info(f"Fetching video transcript for URL: {url}")
+    logging.info(f"Fetching video transcript for URL: {url} (max_chars: {max_chars})")
     
     # Extract video ID from URL
     video_id_pattern = r'(?:v=|\/)([0-9A-Za-z_-]{11}).*'
@@ -130,8 +131,22 @@ def fetch_video_transcript(url: str) -> str:
 
         # Join all entries with newlines
         result = "\n".join(formatted_entries)
-        logging.info(f"Successfully fetched transcript with {len(formatted_entries)} entries")
-        return result
+        
+        # Apply character limit like other tools
+        try:
+            limit = int(max_chars)
+        except (TypeError, ValueError):
+            limit = 6000
+        
+        limit = max(1, min(limit, 50000))  # Allow up to 50k chars for transcripts
+        
+        if len(result) > limit:
+            truncated_result = result[:limit] + "\n\n...[transcript truncated]"
+            logging.info(f"Successfully fetched transcript with {len(formatted_entries)} entries (truncated from {len(result)} to {limit} chars)")
+            return truncated_result
+        else:
+            logging.info(f"Successfully fetched transcript with {len(formatted_entries)} entries ({len(result)} chars)")
+            return result
 
     except Exception as e:
         logging.error(f"Error fetching transcript for {url}: {str(e)}")
